@@ -30,6 +30,7 @@ dependencies:
   dio: ^5.3.3
   connectivity_plus: ^5.0.1
   cached_network_image: ^3.3.0
+  url_launcher: ^6.1.14
   
   # Maps
   flutter_map: ^6.0.1
@@ -45,8 +46,9 @@ dependencies:
   flutter_image_compress: ^2.1.0
   
   # Voice & Accessibility
-  # speech_to_text: 6.1.1  # Temporarily commenting out due to compatibility issues
-  # flutter_tts: ^3.8.5    # Temporarily commenting out due to compatibility issues
+  speech_to_text: ^6.1.1
+  flutter_tts: ^3.8.5
+  record: ^4.4.4
   
   # Security & Storage
   flutter_secure_storage: ^9.0.0
