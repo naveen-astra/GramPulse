@@ -1,7 +1,5 @@
 part of 'role_selection_bloc.dart';
 
-enum UserRole { citizen, volunteer, officer }
-
 abstract class RoleSelectionEvent extends Equatable {
   const RoleSelectionEvent();
 
@@ -10,7 +8,7 @@ abstract class RoleSelectionEvent extends Equatable {
 }
 
 class RoleSelectionRoleChanged extends RoleSelectionEvent {
-  final UserRole role;
+  final String role;
 
   const RoleSelectionRoleChanged(this.role);
 

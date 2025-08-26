@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:grampulse/features/auth/domain/services/auth_service.dart';
 
 part 'otp_verification_event.dart';
 part 'otp_verification_state.dart';
@@ -28,6 +29,11 @@ class OtpVerificationBloc extends Bloc<OtpVerificationEvent, OtpVerificationStat
       await Future.delayed(const Duration(seconds: 2));
       
       // TODO: Implement actual API call to verify OTP
+      
+      // Set authentication state to indicate user is authenticated
+      // We're using a temporary ID, name and role since these will be set during profile setup
+      final authService = AuthService();
+      authService.setAuthenticationInProgress(phoneNumber: event.phoneNumber);
       
       emit(OtpVerified());
     } catch (e) {

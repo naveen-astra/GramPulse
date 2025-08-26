@@ -46,7 +46,6 @@ dependencies:
   flutter_image_compress: ^2.1.0
   
   # Voice & Accessibility
-  speech_to_text: ^6.1.1
   flutter_tts: ^3.8.5
   record: ^4.4.4
   
@@ -64,6 +63,7 @@ dependencies:
   shimmer: ^3.0.0
   lottie: ^2.7.0
   intl: ^0.19.0
+  fl_chart: ^1.0.0
 
 dev_dependencies:
   flutter_test:

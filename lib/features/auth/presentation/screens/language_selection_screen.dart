@@ -48,7 +48,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   child: GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 1.2,
+                      childAspectRatio: 1.5,
                       crossAxisSpacing: Spacing.md,
                       mainAxisSpacing: Spacing.md,
                     ),
@@ -128,21 +128,24 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
           padding: const EdgeInsets.all(Spacing.md),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 flag,
-                style: const TextStyle(fontSize: 30),
+                style: const TextStyle(fontSize: 24),
               ),
-              const SizedBox(height: Spacing.xs),
+              const SizedBox(height: 4),
               Text(
                 languageName,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: Spacing.sm),
               Radio<bool>(
                 value: true,
                 groupValue: isSelected,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 onChanged: (_) {
                   setState(() {
                     _selectedLanguage = languageCode;

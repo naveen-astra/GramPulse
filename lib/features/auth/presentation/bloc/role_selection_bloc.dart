@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:grampulse/features/auth/domain/services/auth_service.dart';
 
 part 'role_selection_event.dart';
 part 'role_selection_state.dart';
@@ -29,6 +30,40 @@ class RoleSelectionBloc extends Bloc<RoleSelectionEvent, RoleSelectionState> {
       await Future.delayed(const Duration(seconds: 2));
       
       // In a real app, we would call repository to save user role
+      
+      // Complete the authentication process by setting the user's role
+      final authService = AuthService();
+      final UserRole userRole;
+      
+      // Convert string role to UserRole enum
+      switch (state.selectedRole) {
+        case 'citizen':
+          userRole = UserRole.citizen;
+          break;
+        case 'volunteer':
+          userRole = UserRole.volunteer;
+          break;
+        case 'officer':
+          userRole = UserRole.officer;
+          break;
+        case 'admin':
+          userRole = UserRole.admin;
+          break;
+        default:
+          userRole = UserRole.citizen; // Default to citizen
+      }
+      
+      // Generate a temporary user ID
+      final tempUserId = DateTime.now().millisecondsSinceEpoch.toString();
+      final phoneNumber = authService.phoneNumber ?? '';
+      
+      // Set the user as fully authenticated with the selected role
+      authService.setAuthenticated(
+        role: userRole,
+        userId: tempUserId,
+        userName: 'User $tempUserId', // Temporary name
+        phoneNumber: phoneNumber,
+      );
       
       emit(state.copyWith(status: RoleSelectionStatus.success));
     } catch (e) {

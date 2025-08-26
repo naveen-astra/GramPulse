@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:grampulse/core/theme/spacing.dart';
 import 'package:grampulse/core/widgets/buttons.dart';
+import 'package:grampulse/features/auth/domain/services/auth_service.dart';
 import 'package:grampulse/features/auth/presentation/bloc/role_selection_bloc.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
@@ -14,7 +15,9 @@ class RoleSelectionScreen extends StatelessWidget {
     return BlocConsumer<RoleSelectionBloc, RoleSelectionState>(
       listener: (context, state) {
         if (state.status == RoleSelectionStatus.success) {
-          context.go('/home');
+          // Navigate to the appropriate home screen based on the selected role
+          final authService = AuthService();
+          context.go(authService.getHomeRoute());
         } else if (state.status == RoleSelectionStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.errorMessage ?? 'An error occurred')),
@@ -58,10 +61,10 @@ class RoleSelectionScreen extends StatelessWidget {
                             description:
                                 'Report issues in your area and track their resolution status',
                             icon: Icons.person,
-                            isSelected: state.selectedRole == UserRole.citizen,
+                            isSelected: state.selectedRole == 'citizen',
                             onTap: () {
                               context.read<RoleSelectionBloc>().add(
-                                    const RoleSelectionRoleChanged(UserRole.citizen),
+                                    const RoleSelectionRoleChanged('citizen'),
                                   );
                             },
                           ),
@@ -71,10 +74,10 @@ class RoleSelectionScreen extends StatelessWidget {
                             description:
                                 'Help verify reported issues and assist in coordinating with officials',
                             icon: Icons.volunteer_activism,
-                            isSelected: state.selectedRole == UserRole.volunteer,
+                            isSelected: state.selectedRole == 'volunteer',
                             onTap: () {
                               context.read<RoleSelectionBloc>().add(
-                                    const RoleSelectionRoleChanged(UserRole.volunteer),
+                                    const RoleSelectionRoleChanged('volunteer'),
                                   );
                             },
                           ),
@@ -84,10 +87,10 @@ class RoleSelectionScreen extends StatelessWidget {
                             description:
                                 'Access and respond to issues reported in your jurisdiction',
                             icon: Icons.account_balance,
-                            isSelected: state.selectedRole == UserRole.officer,
+                            isSelected: state.selectedRole == 'officer',
                             onTap: () {
                               context.read<RoleSelectionBloc>().add(
-                                    const RoleSelectionRoleChanged(UserRole.officer),
+                                    const RoleSelectionRoleChanged('officer'),
                                   );
                             },
                           ),

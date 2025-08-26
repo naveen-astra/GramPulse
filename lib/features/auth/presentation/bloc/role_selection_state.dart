@@ -3,7 +3,7 @@ part of 'role_selection_bloc.dart';
 enum RoleSelectionStatus { initial, submitting, success, failure }
 
 class RoleSelectionState extends Equatable {
-  final UserRole? selectedRole;
+  final String? selectedRole;
   final RoleSelectionStatus status;
   final String? errorMessage;
 
@@ -14,7 +14,7 @@ class RoleSelectionState extends Equatable {
   });
 
   RoleSelectionState copyWith({
-    UserRole? selectedRole,
+    String? selectedRole,
     RoleSelectionStatus? status,
     String? errorMessage,
   }) {

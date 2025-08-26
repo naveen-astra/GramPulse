@@ -40,7 +40,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       body: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
         listener: (context, state) {
           if (state is PhoneAuthSuccess) {
-            context.go('/otp-verification', extra: {'phone': _phoneController.text});
+            context.go('/otp-verification/${_phoneController.text}');
           } else if (state is PhoneAuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.error)),

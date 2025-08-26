@@ -107,7 +107,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       onPressed: _otp.length == 6 && state is! OtpSubmitting
                           ? () {
                               context.read<OtpVerificationBloc>().add(
-                                    VerifyOtpEvent(otp: _otp),
+                                    VerifyOtpEvent(
+                                      otp: _otp,
+                                      phoneNumber: widget.phoneNumber,
+                                    ),
                                   );
                             }
                           : null,

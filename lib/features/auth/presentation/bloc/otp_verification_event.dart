@@ -9,11 +9,12 @@ abstract class OtpVerificationEvent extends Equatable {
 
 class VerifyOtpEvent extends OtpVerificationEvent {
   final String otp;
+  final String phoneNumber;
   
-  const VerifyOtpEvent({required this.otp});
+  const VerifyOtpEvent({required this.otp, required this.phoneNumber});
   
   @override
-  List<Object> get props => [otp];
+  List<Object> get props => [otp, phoneNumber];
 }
 
 class ResendOtpEvent extends OtpVerificationEvent {
