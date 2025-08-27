@@ -88,40 +88,7 @@ class CitizenHomeScreen extends StatelessWidget {
               icon: Icon(Icons.add_circle),
               backgroundColor: Theme.of(context).colorScheme.tertiary,
             ),
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: 0,
-              items: [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.explore),
-                  label: 'Explore',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.assignment),
-                  label: 'My Reports',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
-              onTap: (index) {
-                switch (index) {
-                  case 1:
-                    context.go('/explore');
-                    break;
-                  case 2:
-                    context.go('/my-reports');
-                    break;
-                  case 3:
-                    context.go('/profile');
-                    break;
-                }
-              },
-            ),
+
           );
         },
       ),
@@ -346,11 +313,11 @@ class CitizenHomeScreen extends StatelessWidget {
                             'No issues reported yet',
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
-                          const SizedBox(height: AppSpacing.sm),
-                          ElevatedButton(
-                            onPressed: () => context.go('/report-issue'),
-                            child: Text('Report an Issue'),
-                          ),
+                          //const SizedBox(height: AppSpacing.sm),
+                          //ElevatedButton(
+                            //onPressed: () => context.go('/report-issue'),
+                            //child: Text('Report an Issue'),
+                          //),
                         ],
                       ),
                     );
