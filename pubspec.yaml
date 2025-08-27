@@ -55,8 +55,10 @@ dependencies:
   
   # Firebase
   firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
   firebase_analytics: ^10.7.4
   firebase_crashlytics: ^3.4.8
+  pinput: ^3.0.1  # For OTP input UI
   
   # UI Components
   flutter_svg: ^2.0.9

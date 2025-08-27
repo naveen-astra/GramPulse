@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internet Permission -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- SMS Permission for OTP auto-read -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    
     <application
         android:label="grampulse"
         android:name="${applicationName}"

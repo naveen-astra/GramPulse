@@ -25,17 +25,15 @@ class OtpVerificationBloc extends Bloc<OtpVerificationEvent, OtpVerificationStat
     emit(OtpSubmitting());
     
     try {
-      // Simulate API call to verify OTP
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // TODO: Implement actual API call to verify OTP
-      
-      // Set authentication state to indicate user is authenticated
-      // We're using a temporary ID, name and role since these will be set during profile setup
       final authService = AuthService();
-      authService.setAuthenticationInProgress(phoneNumber: event.phoneNumber);
+      final success = await authService.verifyOTPAndSignIn(event.otp);
       
-      emit(OtpVerified());
+      if (success) {
+        authService.setAuthenticationInProgress(phoneNumber: event.phoneNumber);
+        emit(OtpVerified());
+      } else {
+        emit(OtpError(message: 'Invalid OTP. Please try again.'));
+      }
     } catch (e) {
       emit(OtpError(message: e.toString()));
     }
@@ -48,14 +46,30 @@ class OtpVerificationBloc extends Bloc<OtpVerificationEvent, OtpVerificationStat
     emit(OtpResending());
     
     try {
-      // Simulate API call to resend OTP
-      await Future.delayed(const Duration(seconds: 1));
+      print('DEBUG: Resending OTP for phone number: ${event.phoneNumber}');
       
-      // TODO: Implement actual API call to resend OTP
+      final authService = AuthService();
       
-      emit(OtpInitial());
-      add(const StartTimerEvent());
+      // Format phone number to include country code if not already present
+      String formattedPhoneNumber = event.phoneNumber;
+      if (!event.phoneNumber.startsWith('+91')) {
+        formattedPhoneNumber = '+91${event.phoneNumber}';
+      }
+      
+      await authService.verifyPhoneNumber(
+        phoneNumber: formattedPhoneNumber,
+        onCodeSent: (String verificationId) {
+          print('DEBUG: OTP resent successfully');
+          emit(OtpInitial());
+          add(const StartTimerEvent());
+        },
+        onError: (String error) {
+          print('DEBUG: Failed to resend OTP: $error');
+          emit(OtpError(message: 'Failed to resend OTP: $error'));
+        },
+      );
     } catch (e) {
+      print('DEBUG: Exception while resending OTP: $e');
       emit(OtpError(message: e.toString()));
     }
   }

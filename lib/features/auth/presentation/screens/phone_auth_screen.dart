@@ -39,12 +39,24 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       ),
       body: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
         listener: (context, state) {
+          print('DEBUG: PhoneAuthBloc state changed to: ${state.runtimeType}');
+          print('DEBUG: State details: $state');
           if (state is PhoneAuthSuccess) {
-            context.go('/otp-verification/${_phoneController.text}');
+            print('DEBUG: Navigating to OTP verification for phone: ${_phoneController.text}');
+            print('DEBUG: Route: /otp-verification/${_phoneController.text}');
+            try {
+              context.go('/otp-verification/${_phoneController.text}');
+              print('DEBUG: Navigation completed successfully');
+            } catch (e) {
+              print('DEBUG: Navigation error: $e');
+            }
           } else if (state is PhoneAuthFailure) {
+            print('DEBUG: Phone auth failed with error: ${state.error}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.error)),
             );
+          } else if (state is PhoneAuthLoading) {
+            print('DEBUG: Phone auth is in loading state');
           }
         },
         builder: (context, state) {
@@ -115,13 +127,16 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                       onPressed: state is PhoneAuthLoading
                           ? null
                           : () {
+                              print('DEBUG: Get OTP button pressed');
                               if (_phoneController.text.length == 10) {
+                                print('DEBUG: Phone number is valid: ${_phoneController.text}');
                                 context.read<PhoneAuthBloc>().add(
                                       RequestOtpEvent(
                                         phoneNumber: _phoneController.text,
                                       ),
                                     );
                               } else {
+                                print('DEBUG: Invalid phone number length: ${_phoneController.text.length}');
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Please enter a valid 10-digit mobile number'),
