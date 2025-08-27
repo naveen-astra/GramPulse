@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grampulse/features/auth/domain/services/auth_service.dart';
+import 'package:grampulse/features/auth/bloc/auth_bloc.dart';
+import 'package:grampulse/features/auth/presentation/bloc/language_bloc.dart';
+import 'package:grampulse/features/auth/presentation/bloc/role_selection_bloc.dart';
 import 'package:grampulse/features/auth/presentation/bloc/splash_bloc.dart';
 import 'package:grampulse/features/auth/presentation/screens/splash_screen.dart';
-import 'package:grampulse/features/auth/presentation/bloc/language_bloc.dart';
 import 'package:grampulse/features/auth/presentation/screens/language_selection_screen.dart';
-import 'package:grampulse/features/auth/presentation/bloc/phone_auth_bloc.dart';
-import 'package:grampulse/features/auth/presentation/screens/phone_auth_screen.dart';
-import 'package:grampulse/features/auth/presentation/bloc/otp_verification_bloc.dart';
+import 'package:grampulse/features/auth/presentation/screens/login_screen.dart';
 import 'package:grampulse/features/auth/presentation/screens/otp_verification_screen.dart';
-import 'package:grampulse/features/auth/presentation/bloc/profile_setup_bloc.dart';
 import 'package:grampulse/features/auth/presentation/screens/profile_setup_screen.dart';
-import 'package:grampulse/features/auth/presentation/bloc/role_selection_bloc.dart';
 import 'package:grampulse/features/auth/presentation/screens/role_selection_screen.dart';
 
 // Citizen imports
@@ -51,14 +48,118 @@ import 'package:grampulse/features/admin/presentation/screens/analytics_reports_
 final appRouter = GoRouter(
   initialLocation: '/',
   debugLogDiagnostics: true,
-  redirect: authRedirect,
+  redirect: (context, state) {
+    // Get current auth state from the AuthBloc
+    final authState = context.read<AuthBloc>().state;
+    final location = state.matchedLocation;
+    
+    // Define auth paths that are accessible without authentication
+    final authPaths = [
+      '/',
+      '/language-selection',
+      '/login',
+      '/otp-verification',
+    ];
+    
+    // Check if current path is an auth path
+    final inAuthPath = authPaths.any((path) => 
+      location == path || location.startsWith('/otp-verification/'));
+    
+    // Authentication logic
+    if (authState is Authenticated) {
+      // If authenticated but profile not complete, go to profile setup
+      if (!authState.isProfileComplete && location != '/profile-setup') {
+        return '/profile-setup';
+      }
+      
+      // If authenticated with complete profile but in auth path, redirect to home
+      if (inAuthPath) {
+        switch (authState.user.role) {
+          case 'citizen':
+            return '/citizen';
+          case 'volunteer':
+            return '/volunteer';
+          case 'officer':
+            return '/officer';
+          case 'admin':
+            return '/admin';
+          default:
+            return '/citizen';
+        }
+      }
+      
+      // Verify role-specific access
+      if (location.startsWith('/citizen') && authState.user.role != 'citizen') {
+        switch (authState.user.role) {
+          case 'volunteer':
+            return '/volunteer';
+          case 'officer':
+            return '/officer';
+          case 'admin':
+            return '/admin';
+          default:
+            return '/citizen';
+        }
+      }
+      
+      if (location.startsWith('/volunteer') && authState.user.role != 'volunteer') {
+        switch (authState.user.role) {
+          case 'citizen':
+            return '/citizen';
+          case 'officer':
+            return '/officer';
+          case 'admin':
+            return '/admin';
+          default:
+            return '/citizen';
+        }
+      }
+      
+      if (location.startsWith('/officer') && authState.user.role != 'officer') {
+        switch (authState.user.role) {
+          case 'citizen':
+            return '/citizen';
+          case 'volunteer':
+            return '/volunteer';
+          case 'admin':
+            return '/admin';
+          default:
+            return '/citizen';
+        }
+      }
+      
+      if (location.startsWith('/admin') && authState.user.role != 'admin') {
+        switch (authState.user.role) {
+          case 'citizen':
+            return '/citizen';
+          case 'volunteer':
+            return '/volunteer';
+          case 'officer':
+            return '/officer';
+          default:
+            return '/citizen';
+        }
+      }
+      
+      // If authenticated and in the correct role path, allow
+      return null;
+    } else {
+      // If not authenticated and trying to access non-auth paths, redirect to login
+      if (!inAuthPath) {
+        return '/login';
+      }
+      
+      // If not authenticated and in auth path, allow
+      return null;
+    }
+  },
   routes: [
     // Authentication routes
     GoRoute(
       path: '/',
       name: 'splash',
       builder: (context, state) => BlocProvider(
-        create: (context) => SplashBloc(),
+        create: (context) => SplashBloc()..add(const CheckAuthStatusEvent()),
         child: const SplashScreen(),
       ),
     ),
@@ -73,29 +174,20 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/login',
       name: 'login',
-      builder: (context, state) => BlocProvider(
-        create: (context) => PhoneAuthBloc(),
-        child: const PhoneAuthScreen(),
-      ),
+      builder: (context, state) => const LoginScreen(),
     ),
     GoRoute(
       path: '/otp-verification/:phoneNumber',
       name: 'otp_verification',
       builder: (context, state) {
         final phoneNumber = state.pathParameters['phoneNumber'] ?? '';
-        return BlocProvider(
-          create: (context) => OtpVerificationBloc(),
-          child: OtpVerificationScreen(phoneNumber: phoneNumber),
-        );
+        return OtpVerificationScreen(phoneNumber: phoneNumber);
       },
     ),
     GoRoute(
       path: '/profile-setup',
       name: 'profile_setup',
-      builder: (context, state) => BlocProvider(
-        create: (context) => ProfileSetupBloc(),
-        child: const ProfileSetupScreen(),
-      ),
+      builder: (context, state) => const ProfileSetupScreen(),
     ),
     GoRoute(
       path: '/role-selection',
