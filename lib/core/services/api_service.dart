@@ -27,8 +27,12 @@ class ApiResponse<T> {
 }
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:5000/api'; // For Android emulator
-  // static const String baseUrl = 'http://localhost:3000/api'; // For web or iOS simulator
+  // Use --dart-define to override at run-time: --dart-define=API_BASE=http://<host>:5000/api
+  // Fallback defaults to your machine's Wi‑Fi IP so physical devices can reach it on LAN.
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE',
+    defaultValue: 'http://10.12.225.144:5000/api',
+  );
 
   // Headers with token
   Future<Map<String, String>> _getHeaders() async {
@@ -69,6 +73,17 @@ class ApiService {
     await prefs.remove('token');
   }
 
+  Future<ApiResponse<dynamic>> requestOtp(String phone) async {
+    print('🎯 API SERVICE: Requesting OTP for $phone');
+    
+    return await post(  // Just call 'post' directly, not '_apiService.post'
+        '/auth/request-otp',  // Endpoint
+        {'phone': phone},     // Request body
+        (data) => data,       // Data parser (simple pass-through)
+    );
+    }
+
+
   // GET request
   Future<ApiResponse<T>> get<T>(
     String endpoint,
@@ -95,21 +110,41 @@ class ApiService {
     String endpoint,
     dynamic body,
     T Function(dynamic)? fromJson,
-  ) async {
+    ) async {
     try {
-      final response = await http.post(
+        print('🚀 ATTEMPTING REQUEST TO: $baseUrl$endpoint');
+        print('📤 SENDING DATA: $body');
+        
+        final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
         headers: await _getHeaders(),
         body: json.encode(body),
-      );
-      
-      return _processResponse(response, fromJson);
+        ).timeout(
+        const Duration(seconds: 30), // ✅ Increased to 30 seconds
+        );
+        
+        print('📥 RESPONSE STATUS: ${response.statusCode}');
+        print('📥 RESPONSE BODY: ${response.body}');
+        
+        return _processResponse(response, fromJson);
     } catch (e) {
-      return ApiResponse(
+        print('❌ NETWORK ERROR: $e');
+        return ApiResponse(
         success: false,
         message: 'Network error: ${e.toString()}',
         statusCode: 500,
-      );
+        );
+    }
+  }
+
+  // Simple connectivity check
+  Future<ApiResponse<dynamic>> health() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/health'))
+          .timeout(const Duration(seconds: 10));
+      return _processResponse(response, (d) => d);
+    } catch (e) {
+      return ApiResponse(success: false, message: 'Health check failed: $e', statusCode: 500);
     }
   }
 

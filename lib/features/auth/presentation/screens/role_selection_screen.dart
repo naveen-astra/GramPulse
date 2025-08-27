@@ -64,7 +64,7 @@ class RoleSelectionScreen extends StatelessWidget {
                             isSelected: state.selectedRole == 'citizen',
                             onTap: () {
                               context.read<RoleSelectionBloc>().add(
-                                    const RoleSelectionRoleChanged('citizen'),
+                                    RoleSelectionRoleChanged('citizen'),
                                   );
                             },
                           ),
@@ -77,7 +77,7 @@ class RoleSelectionScreen extends StatelessWidget {
                             isSelected: state.selectedRole == 'volunteer',
                             onTap: () {
                               context.read<RoleSelectionBloc>().add(
-                                    const RoleSelectionRoleChanged('volunteer'),
+                                    RoleSelectionRoleChanged('volunteer'),
                                   );
                             },
                           ),
@@ -90,7 +90,7 @@ class RoleSelectionScreen extends StatelessWidget {
                             isSelected: state.selectedRole == 'officer',
                             onTap: () {
                               context.read<RoleSelectionBloc>().add(
-                                    const RoleSelectionRoleChanged('officer'),
+                                    RoleSelectionRoleChanged('officer'),
                                   );
                             },
                           ),
@@ -105,7 +105,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         ? () {
                             context
                                 .read<RoleSelectionBloc>()
-                                .add(const RoleSelectionSubmitted());
+                                .add(RoleSelectionSubmitted());
                           }
                         : () {}, // Provide an empty function for null case to satisfy non-nullable VoidCallback
                     isLoading: state.status == RoleSelectionStatus.submitting,

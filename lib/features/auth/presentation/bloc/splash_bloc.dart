@@ -1,43 +1,48 @@
-import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-part 'splash_event.dart';
-part 'splash_state.dart';
+// Events
+abstract class SplashEvent {
+  const SplashEvent();
+}
 
+class CheckAuthStatusEvent extends SplashEvent {
+  const CheckAuthStatusEvent();
+}
+
+// States  
+abstract class SplashState {
+  const SplashState();
+}
+
+class SplashInitial extends SplashState {}
+
+class SplashLoading extends SplashState {}
+
+class SplashAuthenticated extends SplashState {}
+
+class SplashUnauthenticated extends SplashState {}
+
+class SplashUpdateRequired extends SplashState {
+  final String currentVersion;
+  final String requiredVersion;
+  
+  const SplashUpdateRequired(this.currentVersion, this.requiredVersion);
+}
+
+class SplashError extends SplashState {
+  final String message;
+  const SplashError(this.message);
+}
+
+// Bloc
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
   SplashBloc() : super(SplashInitial()) {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
-  Future<void> _onCheckAuthStatus(
-    CheckAuthStatusEvent event,
-    Emitter<SplashState> emit,
-  ) async {
+  Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<SplashState> emit) async {
     emit(SplashLoading());
-    
-    try {
-      // Simulate a delay for loading resources
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // TODO: Check if the user is authenticated
-      // For now, we'll just navigate to language selection
-      emit(SplashUnauthenticated());
-      
-      // Check for updates
-      // final updateRequired = await _checkForUpdates();
-      // if (updateRequired) {
-      //   emit(SplashUpdateRequired(currentVersion: '1.0.0', requiredVersion: '1.1.0'));
-      //   return;
-      // }
-      
-      // final isAuthenticated = await _isUserAuthenticated();
-      // if (isAuthenticated) {
-      //   emit(SplashAuthenticated());
-      // } else {
-      //   emit(SplashUnauthenticated());
-      // }
-    } catch (e) {
-      emit(SplashError(message: e.toString()));
-    }
+    await Future.delayed(const Duration(seconds: 2));
+    emit(SplashUnauthenticated());
   }
 }

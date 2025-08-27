@@ -1,76 +1,118 @@
-import 'dart:async';
-import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:grampulse/features/auth/domain/services/auth_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grampulse/core/services/api_service.dart';
+import 'package:grampulse/features/auth/domain/services/auth_service.dart' as domain_auth;
 
-part 'role_selection_event.dart';
-part 'role_selection_state.dart';
+// Events
+abstract class RoleSelectionEvent {}
 
+class RoleSelectionRoleChanged extends RoleSelectionEvent {
+  final String role;
+  RoleSelectionRoleChanged(this.role); // Removed const
+}
+
+class RoleSelectionSubmitted extends RoleSelectionEvent {
+  RoleSelectionSubmitted(); // Removed const
+}
+
+// States
+enum RoleSelectionStatus { initial, submitting, success, failure }
+
+class RoleSelectionState {
+  final String? selectedRole;
+  final RoleSelectionStatus status;
+  final String? errorMessage;
+
+  const RoleSelectionState({
+    this.selectedRole,
+    this.status = RoleSelectionStatus.initial,
+    this.errorMessage,
+  });
+
+  RoleSelectionState copyWith({
+    String? selectedRole,
+    RoleSelectionStatus? status,
+    String? errorMessage,
+  }) {
+    return RoleSelectionState(
+      selectedRole: selectedRole ?? this.selectedRole,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+class RoleSelectionInitial extends RoleSelectionState {}
+
+// Bloc
 class RoleSelectionBloc extends Bloc<RoleSelectionEvent, RoleSelectionState> {
-  RoleSelectionBloc() : super(const RoleSelectionState()) {
-    on<RoleSelectionRoleChanged>(_onRoleChanged);
-    on<RoleSelectionSubmitted>(_onSubmitted);
-  }
-
-  FutureOr<void> _onRoleChanged(
-    RoleSelectionRoleChanged event,
-    Emitter<RoleSelectionState> emit,
-  ) {
-    emit(state.copyWith(selectedRole: event.role));
-  }
-
-  FutureOr<void> _onSubmitted(
-    RoleSelectionSubmitted event,
-    Emitter<RoleSelectionState> emit,
-  ) async {
-    emit(state.copyWith(status: RoleSelectionStatus.submitting));
+  RoleSelectionBloc() : super(RoleSelectionInitial()) {
+    on<RoleSelectionRoleChanged>((event, emit) {
+      emit(state.copyWith(selectedRole: event.role));
+    });
     
-    try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // In a real app, we would call repository to save user role
-      
-      // Complete the authentication process by setting the user's role
-      final authService = AuthService();
-      final UserRole userRole;
-      
-      // Convert string role to UserRole enum
-      switch (state.selectedRole) {
-        case 'citizen':
-          userRole = UserRole.citizen;
-          break;
-        case 'volunteer':
-          userRole = UserRole.volunteer;
-          break;
-        case 'officer':
-          userRole = UserRole.officer;
-          break;
-        case 'admin':
-          userRole = UserRole.admin;
-          break;
-        default:
-          userRole = UserRole.citizen; // Default to citizen
+    on<RoleSelectionSubmitted>((event, emit) async {
+      emit(state.copyWith(status: RoleSelectionStatus.submitting));
+      try {
+        final selected = state.selectedRole;
+        if (selected == null) {
+          emit(state.copyWith(status: RoleSelectionStatus.failure, errorMessage: 'Please select a role'));
+          return;
+        }
+
+        final api = ApiService();
+
+        // Fetch current user to get name/phone for the update payload
+        final me = await api.get('/auth/me', (d) => d);
+        if (!me.success || me.data == null) {
+          emit(state.copyWith(status: RoleSelectionStatus.failure, errorMessage: me.message));
+          return;
+        }
+        final meData = me.data as Map<String, dynamic>;
+        final name = (meData['name'] as String?) ?? 'User';
+        final phone = (meData['phone'] as String?) ?? '';
+        final id = (meData['_id'] as String?) ?? '';
+
+        // Persist selected role
+        final update = await api.put('/auth/complete-profile', {
+          'name': name,
+          'role': selected,
+          'email': meData['email'],
+        }, (d) => d);
+
+        if (!update.success || update.data == null) {
+          emit(state.copyWith(status: RoleSelectionStatus.failure, errorMessage: update.message));
+          return;
+        }
+
+        // Set final authenticated state in domain auth service
+        final auth = domain_auth.AuthService();
+        domain_auth.UserRole roleEnum;
+        switch (selected) {
+          case 'volunteer':
+            roleEnum = domain_auth.UserRole.volunteer;
+            break;
+          case 'officer':
+            roleEnum = domain_auth.UserRole.officer;
+            break;
+          case 'admin':
+            roleEnum = domain_auth.UserRole.admin;
+            break;
+          case 'citizen':
+          default:
+            roleEnum = domain_auth.UserRole.citizen;
+            break;
+        }
+        auth.setAuthenticated(
+          role: roleEnum,
+          userId: id,
+          userName: name,
+          phoneNumber: phone,
+        );
+
+        emit(state.copyWith(status: RoleSelectionStatus.success));
+      } catch (e) {
+        emit(state.copyWith(status: RoleSelectionStatus.failure, errorMessage: e.toString()));
       }
-      
-      // Generate a temporary user ID
-      final tempUserId = DateTime.now().millisecondsSinceEpoch.toString();
-      final phoneNumber = authService.phoneNumber ?? '';
-      
-      // Set the user as fully authenticated with the selected role
-      authService.setAuthenticated(
-        role: userRole,
-        userId: tempUserId,
-        userName: 'User $tempUserId', // Temporary name
-        phoneNumber: phoneNumber,
-      );
-      
-      emit(state.copyWith(status: RoleSelectionStatus.success));
-    } catch (e) {
-      emit(state.copyWith(
-        status: RoleSelectionStatus.failure,
-        errorMessage: e.toString(),
-      ));
-    }
+    });
   }
 }

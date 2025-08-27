@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:grampulse/features/auth/domain/services/auth_service.dart';
+import 'package:grampulse/core/services/api_service.dart';
 
 part 'otp_verification_event.dart';
 part 'otp_verification_state.dart';
@@ -25,16 +26,29 @@ class OtpVerificationBloc extends Bloc<OtpVerificationEvent, OtpVerificationStat
     emit(OtpSubmitting());
     
     try {
-      // Simulate API call to verify OTP
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // TODO: Implement actual API call to verify OTP
-      
-      // Set authentication state to indicate user is authenticated
-      // We're using a temporary ID, name and role since these will be set during profile setup
+      final api = ApiService();
+      final resp = await api.post(
+        '/auth/verify-otp',
+        {
+          'phone': event.phoneNumber,
+          'otp': event.otp,
+        },
+        (data) => data,
+      );
+
+      if (!resp.success || resp.statusCode < 200 || resp.statusCode >= 300) {
+        throw Exception(resp.message);
+      }
+
+      final data = resp.data as Map<String, dynamic>?;
+      final token = data?['token'] as String?;
+      if (token != null) {
+        await api.saveToken(token);
+      }
+
       final authService = AuthService();
       authService.setAuthenticationInProgress(phoneNumber: event.phoneNumber);
-      
+
       emit(OtpVerified());
     } catch (e) {
       emit(OtpError(message: e.toString()));
@@ -46,13 +60,16 @@ class OtpVerificationBloc extends Bloc<OtpVerificationEvent, OtpVerificationStat
     Emitter<OtpVerificationState> emit,
   ) async {
     emit(OtpResending());
-    
     try {
-      // Simulate API call to resend OTP
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // TODO: Implement actual API call to resend OTP
-      
+      final api = ApiService();
+      final resp = await api.post(
+        '/auth/request-otp',
+        {
+          'phone': event.phoneNumber,
+        },
+        (data) => data,
+      );
+      if (!resp.success) throw Exception(resp.message);
       emit(OtpInitial());
       add(const StartTimerEvent());
     } catch (e) {

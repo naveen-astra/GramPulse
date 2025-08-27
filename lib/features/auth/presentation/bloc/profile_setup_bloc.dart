@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:io';
 import 'package:grampulse/features/auth/domain/services/auth_service.dart';
+import 'package:grampulse/core/services/api_service.dart';
 
 part 'profile_setup_event.dart';
 part 'profile_setup_state.dart';
@@ -59,18 +60,22 @@ class ProfileSetupBloc extends Bloc<ProfileSetupEvent, ProfileSetupState> {
     emit(state.copyWith(status: ProfileSetupStatus.submitting));
     
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // In a real app, we would call repository to save user profile
-      
-      // Temporarily set user ID as we don't have a real one yet
+      final api = ApiService();
+      final body = {
+        'name': state.fullName,
+        'role': 'citizen', // default role until user picks one on next screen
+        'email': state.email,
+      };
+
+      final resp = await api.put('/auth/complete-profile', body, (d) => d);
+      if (!resp.success) throw Exception(resp.message);
+
+      // Keep auth as in-progress; role selection will finalize
       final authService = AuthService();
-      final tempUserId = DateTime.now().millisecondsSinceEpoch.toString();
-      
-      // For now, we'll keep the user in "auth in progress" state
-      // The role selection screen will finally set the user as fully authenticated
-      
+      if (authService.phoneNumber == null) {
+        // no-op, just ensure service is initialized
+      }
+
       emit(state.copyWith(status: ProfileSetupStatus.success));
     } catch (e) {
       emit(state.copyWith(

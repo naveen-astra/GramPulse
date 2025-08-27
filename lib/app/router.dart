@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grampulse/features/auth/bloc/auth_bloc.dart';
+import 'package:grampulse/features/auth/bloc/auth_event.dart';
+import 'package:grampulse/features/auth/bloc/auth_state.dart';
 import 'package:grampulse/features/auth/presentation/bloc/language_bloc.dart';
 import 'package:grampulse/features/auth/presentation/bloc/role_selection_bloc.dart';
 import 'package:grampulse/features/auth/presentation/bloc/splash_bloc.dart';
@@ -9,8 +11,10 @@ import 'package:grampulse/features/auth/presentation/screens/splash_screen.dart'
 import 'package:grampulse/features/auth/presentation/screens/language_selection_screen.dart';
 import 'package:grampulse/features/auth/presentation/screens/login_screen.dart';
 import 'package:grampulse/features/auth/presentation/screens/otp_verification_screen.dart';
+import 'package:grampulse/features/auth/presentation/bloc/otp_verification_bloc.dart';
 import 'package:grampulse/features/auth/presentation/screens/profile_setup_screen.dart';
 import 'package:grampulse/features/auth/presentation/screens/role_selection_screen.dart';
+import 'package:grampulse/features/auth/presentation/bloc/profile_setup_bloc.dart';
 
 // Citizen imports
 import 'package:grampulse/features/citizen/presentation/bloc/citizen_home/citizen_home_bloc.dart';
@@ -44,6 +48,7 @@ import 'package:grampulse/features/admin/presentation/screens/department_perform
 import 'package:grampulse/features/admin/presentation/screens/fund_allocation_screen.dart';
 import 'package:grampulse/features/admin/presentation/screens/system_configuration_screen.dart';
 import 'package:grampulse/features/admin/presentation/screens/analytics_reports_screen.dart';
+import 'package:grampulse/features/auth/domain/services/auth_service.dart' as domain_auth;
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -52,6 +57,7 @@ final appRouter = GoRouter(
     // Get current auth state from the AuthBloc
     final authState = context.read<AuthBloc>().state;
     final location = state.matchedLocation;
+  final domainAuth = domain_auth.AuthService();
     
     // Define auth paths that are accessible without authentication
     final authPaths = [
@@ -66,7 +72,7 @@ final appRouter = GoRouter(
       location == path || location.startsWith('/otp-verification/'));
     
     // Authentication logic
-    if (authState is Authenticated) {
+  if (authState is Authenticated) {
       // If authenticated but profile not complete, go to profile setup
       if (!authState.isProfileComplete && location != '/profile-setup') {
         return '/profile-setup';
@@ -76,15 +82,15 @@ final appRouter = GoRouter(
       if (inAuthPath) {
         switch (authState.user.role) {
           case 'citizen':
-            return '/citizen';
+            return '/citizen/home';
           case 'volunteer':
-            return '/volunteer';
+            return '/volunteer/dashboard';
           case 'officer':
-            return '/officer';
+            return '/officer/dashboard';
           case 'admin':
-            return '/admin';
+            return '/admin/control-room';
           default:
-            return '/citizen';
+            return '/citizen/home';
         }
       }
       
@@ -92,58 +98,69 @@ final appRouter = GoRouter(
       if (location.startsWith('/citizen') && authState.user.role != 'citizen') {
         switch (authState.user.role) {
           case 'volunteer':
-            return '/volunteer';
+            return '/volunteer/dashboard';
           case 'officer':
-            return '/officer';
+            return '/officer/dashboard';
           case 'admin':
-            return '/admin';
+            return '/admin/control-room';
           default:
-            return '/citizen';
+            return '/citizen/home';
         }
       }
       
       if (location.startsWith('/volunteer') && authState.user.role != 'volunteer') {
         switch (authState.user.role) {
           case 'citizen':
-            return '/citizen';
+            return '/citizen/home';
           case 'officer':
-            return '/officer';
+            return '/officer/dashboard';
           case 'admin':
-            return '/admin';
+            return '/admin/control-room';
           default:
-            return '/citizen';
+            return '/citizen/home';
         }
       }
       
       if (location.startsWith('/officer') && authState.user.role != 'officer') {
         switch (authState.user.role) {
           case 'citizen':
-            return '/citizen';
+            return '/citizen/home';
           case 'volunteer':
-            return '/volunteer';
+            return '/volunteer/dashboard';
           case 'admin':
-            return '/admin';
+            return '/admin/control-room';
           default:
-            return '/citizen';
+            return '/citizen/home';
         }
       }
       
       if (location.startsWith('/admin') && authState.user.role != 'admin') {
         switch (authState.user.role) {
           case 'citizen':
-            return '/citizen';
+            return '/citizen/home';
           case 'volunteer':
-            return '/volunteer';
+            return '/volunteer/dashboard';
           case 'officer':
-            return '/officer';
+            return '/officer/dashboard';
           default:
-            return '/citizen';
+            return '/citizen/home';
         }
       }
       
       // If authenticated and in the correct role path, allow
       return null;
     } else {
+      // Allow setup routes when authentication is in progress (post-OTP verification)
+      final isSetupRoute = location == '/profile-setup' || location == '/role-selection';
+      if (isSetupRoute && domainAuth.isAuthenticationInProgress) {
+        return null;
+      }
+
+      // If domain auth service says authenticated (post-setup), allow navigation
+      if (domainAuth.isAuthenticated) {
+        return null;
+      }
+
       // If not authenticated and trying to access non-auth paths, redirect to login
       if (!inAuthPath) {
         return '/login';
@@ -181,13 +198,19 @@ final appRouter = GoRouter(
       name: 'otp_verification',
       builder: (context, state) {
         final phoneNumber = state.pathParameters['phoneNumber'] ?? '';
-        return OtpVerificationScreen(phoneNumber: phoneNumber);
+        return BlocProvider(
+          create: (_) => OtpVerificationBloc(),
+          child: OtpVerificationScreen(phoneNumber: phoneNumber),
+        );
       },
     ),
     GoRoute(
       path: '/profile-setup',
       name: 'profile_setup',
-      builder: (context, state) => const ProfileSetupScreen(),
+      builder: (context, state) => BlocProvider(
+        create: (_) => ProfileSetupBloc(),
+        child: const ProfileSetupScreen(),
+      ),
     ),
     GoRoute(
       path: '/role-selection',

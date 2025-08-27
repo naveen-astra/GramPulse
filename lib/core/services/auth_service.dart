@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 class User {
@@ -82,7 +81,7 @@ class AuthService {
   }) async {
     if (profilePicture != null) {
       return await _apiService.uploadFile<User>(
-        '/users/complete-profile',
+        '/auth/complete-profile',
         profilePicture,
         'profilePicture',
         {
@@ -97,7 +96,7 @@ class AuthService {
       );
     } else {
       return await _apiService.post<User>(
-        '/users/complete-profile',
+        '/auth/complete-profile',
         {
           'name': name,
           'role': role,
@@ -114,7 +113,7 @@ class AuthService {
   // Get current user profile
   Future<ApiResponse<User>> getCurrentUser() async {
     final response = await _apiService.get<User>(
-      '/users/me',
+      '/auth/me',
       (data) {
         _currentUser = User.fromJson(data);
         return _currentUser!;

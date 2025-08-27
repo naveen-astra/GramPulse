@@ -19,13 +19,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   Widget build(BuildContext context) {
     return BlocListener<LanguageBloc, LanguageState>(
       listener: (context, state) {
-        if (state is LanguageUpdated) {
-          // Navigate to login screen after language is updated
+        if (state is LanguageSelected) {
           context.go('/login');
-        } else if (state is LanguageError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
         }
       },
       child: Scaffold(
@@ -68,14 +63,10 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 BlocBuilder<LanguageBloc, LanguageState>(
                   builder: (context, state) {
                     return ElevatedButton(
-                      onPressed: _selectedLanguage == null || state is LanguageUpdating
+                      onPressed: _selectedLanguage == null
                           ? null
                           : () {
-                              context.read<LanguageBloc>().add(
-                                    LanguageSelectedEvent(
-                                      languageCode: _selectedLanguage!,
-                                    ),
-                                  );
+                              context.read<LanguageBloc>().add(SelectLanguage(_selectedLanguage!));
                             },
                       child: state is LanguageUpdating
                           ? const SizedBox(

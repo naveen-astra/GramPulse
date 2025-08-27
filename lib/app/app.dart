@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:grampulse/app/router.dart';
 import 'package:grampulse/core/theme/app_theme.dart';
 import 'package:grampulse/features/auth/bloc/auth_bloc.dart';
+import 'package:grampulse/features/auth/bloc/auth_event.dart';
 import 'package:grampulse/features/report/bloc/report_bloc.dart';
 import 'package:grampulse/core/utils/l10n/app_localizations.dart';
 import 'package:grampulse/features/auth/presentation/bloc/splash_bloc.dart';
