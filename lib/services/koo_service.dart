@@ -169,8 +169,8 @@ class KooService {
     for (final entry in locationHints.entries) {
       if (lowerText.contains(entry.key)) {
         return {
-          'latitude': entry.value['lat']! + (DateTime.now().millisecond % 100) / 10000,
-          'longitude': entry.value['lng']! + (DateTime.now().millisecond % 100) / 10000,
+          'latitude': (entry.value['lat']! as double) + (DateTime.now().millisecond % 100) / 10000,
+          'longitude': (entry.value['lng']! as double) + (DateTime.now().millisecond % 100) / 10000,
           'address': entry.value['address'],
         };
       }
