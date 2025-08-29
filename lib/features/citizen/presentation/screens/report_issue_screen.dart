@@ -10,7 +10,7 @@ import 'package:grampulse/core/theme/spacing.dart';
 import 'dart:convert';
 import 'dart:io';
 
-const String groqApiKey = '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';
+const String groqApiKey = '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';
 
 class ReportIssueScreen extends StatefulWidget {
   final String? mode;
@@ -1286,7 +1286,7 @@ class MongoDBService {
 class GroqAIService {
   final String apiKey;
   static const String baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
-  static const String model = 'llama-3.1-70b-versatile';
+  static const String model = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
   GroqAIService(this.apiKey);
 
