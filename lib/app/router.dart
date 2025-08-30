@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grampulse/features/auth/bloc/auth_bloc.dart';
-import 'package:grampulse/features/auth/bloc/auth_event.dart';
-import 'package:grampulse/features/auth/bloc/auth_state.dart';
+import 'package:grampulse/features/auth/presentation/blocs/auth_bloc.dart';
+import 'package:grampulse/features/auth/domain/auth_events_states.dart';
 import 'package:grampulse/features/auth/presentation/bloc/language_bloc.dart';
 import 'package:grampulse/features/auth/presentation/bloc/role_selection_bloc.dart';
 import 'package:grampulse/features/auth/presentation/bloc/splash_bloc.dart';

@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import '../utils/performance_utils.dart';
 
 class LocationService {
   static Future<bool> checkAndRequestPermission() async {
@@ -28,17 +30,32 @@ class LocationService {
   }
 
   static Future<Position?> getCurrentLocation() async {
-    final hasPermission = await checkAndRequestPermission();
-    if (!hasPermission) return null;
+    return await ApiPerformanceUtils.measureAsync(
+      'Get Current Location',
+      () async {
+        final hasPermission = await checkAndRequestPermission();
+        if (!hasPermission) return null;
 
-    try {
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      );
-    } catch (e) {
-      print('❌ Error getting location: $e');
-      return null;
-    }
+        try {
+          final position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high, // More battery efficient than best
+            timeLimit: const Duration(seconds: 10), // Prevent hanging
+          );
+          
+          if (kDebugMode) {
+            print('📍 Location: ${position.latitude}, ${position.longitude}');
+            print('📍 Accuracy: ${position.accuracy}m');
+          }
+          
+          return position;
+        } catch (e) {
+          if (kDebugMode) {
+            print('❌ Error getting location: $e');
+          }
+          return null;
+        }
+      },
+    );
   }
 
   static Future<String?> getAddressFromCoordinates(

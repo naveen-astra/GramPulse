@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/performance_utils.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -28,10 +29,10 @@ class ApiResponse<T> {
 
 class ApiService {
   // Use --dart-define to override at run-time: --dart-define=API_BASE=http://<host>:5000/api
-  // Use localhost with ADB reverse tunnel for Android device connection
+  // With ADB port forwarding, we can use localhost
   static const String baseUrl = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'http://localhost:5000/api',
+    defaultValue: 'http://localhost:5000/api', // Using localhost with ADB port forwarding
   );
 
   // Headers with token
@@ -211,7 +212,7 @@ class ApiService {
         headers: await _getHeaders(),
       );
       
-      return _processResponse(response, fromJson);
+      return await _processResponse(response, fromJson);
     } catch (e) {
       return ApiResponse(
         success: false,
@@ -242,7 +243,7 @@ class ApiService {
         print('📥 RESPONSE STATUS: ${response.statusCode}');
         print('📥 RESPONSE BODY: ${response.body}');
         
-        return _processResponse(response, fromJson);
+        return await _processResponse(response, fromJson);
     } catch (e) {
         print('❌ NETWORK ERROR: $e');
         return ApiResponse(
@@ -258,7 +259,7 @@ class ApiService {
     try {
       final response = await http.get(Uri.parse('$baseUrl/health'))
           .timeout(const Duration(seconds: 10));
-      return _processResponse(response, (d) => d);
+      return await _processResponse(response, (d) => d);
     } catch (e) {
       return ApiResponse(success: false, message: 'Health check failed: $e', statusCode: 500);
     }
@@ -277,7 +278,7 @@ class ApiService {
         body: json.encode(body),
       );
       
-      return _processResponse(response, fromJson);
+      return await _processResponse(response, fromJson);
     } catch (e) {
       return ApiResponse(
         success: false,
@@ -298,7 +299,7 @@ class ApiService {
         headers: await _getHeaders(),
       );
       
-      return _processResponse(response, fromJson);
+      return await _processResponse(response, fromJson);
     } catch (e) {
       return ApiResponse(
         success: false,
@@ -340,7 +341,7 @@ class ApiService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
       
-      return _processResponse(response, fromJson);
+      return await _processResponse(response, fromJson);
     } catch (e) {
       return ApiResponse(
         success: false,
@@ -350,13 +351,19 @@ class ApiService {
     }
   }
 
-  // Process HTTP response
-  ApiResponse<T> _processResponse<T>(
+  // Process HTTP response with performance optimization
+  Future<ApiResponse<T>> _processResponse<T>(
     http.Response response,
     T Function(dynamic)? fromJson,
-  ) {
+  ) async {
     try {
-      final responseBody = json.decode(response.body);
+      print('📊 Response size: ${response.body.length} bytes');
+      
+      // Use isolate for large JSON responses
+      final responseBody = await ApiPerformanceUtils.measureAsync(
+        'JSON Parse (${response.body.length} bytes)',
+        () => ApiPerformanceUtils.parseJsonInIsolate(response.body),
+      );
       
       if (response.statusCode >= 200 && response.statusCode < 300) {
         // Successful response
@@ -405,7 +412,7 @@ class ApiService {
       print('📥 RESPONSE STATUS: ${response.statusCode}');
       print('📥 RESPONSE BODY: ${response.body}');
 
-      return _processResponse<Map<String, dynamic>>(
+      return await _processResponse<Map<String, dynamic>>(
         response, 
         (data) => data as Map<String, dynamic>,
       );
@@ -438,7 +445,7 @@ class ApiService {
       print('📥 RESPONSE STATUS: ${response.statusCode}');
       print('📥 RESPONSE BODY: ${response.body}');
 
-      return _processResponse<Map<String, dynamic>>(
+      return await _processResponse<Map<String, dynamic>>(
         response, 
         (data) => data as Map<String, dynamic>,
       );
@@ -468,7 +475,7 @@ class ApiService {
       print('📥 RESPONSE STATUS: ${response.statusCode}');
       print('📥 RESPONSE BODY: ${response.body}');
 
-      return _processResponse<Map<String, dynamic>>(
+      return await _processResponse<Map<String, dynamic>>(
         response, 
         (data) => data as Map<String, dynamic>,
       );
@@ -512,7 +519,7 @@ class ApiService {
       print('📥 RESPONSE STATUS: ${response.statusCode}');
       print('📥 RESPONSE BODY: ${response.body}');
 
-      return _processResponse<Map<String, dynamic>>(
+      return await _processResponse<Map<String, dynamic>>(
         response, 
         (data) => data as Map<String, dynamic>,
       );
@@ -542,7 +549,7 @@ class ApiService {
       print('📥 RESPONSE STATUS: ${response.statusCode}');
       print('📥 RESPONSE BODY: ${response.body}');
 
-      return _processResponse<Map<String, dynamic>>(
+      return await _processResponse<Map<String, dynamic>>(
         response, 
         (data) => data as Map<String, dynamic>,
       );

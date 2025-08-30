@@ -7,6 +7,10 @@ import 'package:grampulse/features/citizen/domain/models/incident_models.dart';
 import 'package:grampulse/features/citizen/presentation/bloc/incident/incident_bloc.dart';
 import 'package:grampulse/features/citizen/presentation/bloc/incident/incident_event.dart';
 import 'package:grampulse/features/citizen/presentation/bloc/incident/incident_state.dart';
+import 'package:grampulse/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:grampulse/features/profile/presentation/bloc/profile_state.dart';
+import 'package:grampulse/features/profile/data/repositories/profile_repository.dart';
+import 'package:grampulse/core/services/api_service.dart';
 
 class CitizenDashboardScreen extends StatefulWidget {
   const CitizenDashboardScreen({Key? key}) : super(key: key);
@@ -54,6 +58,35 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                 _getCurrentLocation();
               },
               icon: const Icon(Icons.refresh),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'profile') {
+                  context.go('/profile');
+                } else if (value == 'logout') {
+                  context.go('/role-selection');
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  const PopupMenuItem<String>(
+                    value: 'profile',
+                    child: ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text('Profile'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: ListTile(
+                      leading: Icon(Icons.logout),
+                      title: Text('Logout'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ];
+              },
             ),
           ],
         ),

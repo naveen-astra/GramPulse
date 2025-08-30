@@ -84,15 +84,15 @@ class AuthService {
   String getHomeRoute() {
     switch (_userRole) {
       case UserRole.citizen:
-        return '/citizen/home';
+        return '/citizen';
       case UserRole.volunteer:
         return '/volunteer/dashboard';
       case UserRole.officer:
-        return '/officer/dashboard';
+        return '/officer';
       case UserRole.admin:
         return '/admin/control-room';
       case UserRole.none:
-        return '/login';
+        return '/auth';
     }
   }
 }

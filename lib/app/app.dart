@@ -9,6 +9,8 @@ import 'package:grampulse/features/auth/domain/auth_events_states.dart';
 import 'package:grampulse/core/utils/l10n/app_localizations.dart';
 import 'package:grampulse/features/citizen/presentation/bloc/incident/incident_bloc.dart';
 import 'package:grampulse/features/citizen/domain/repositories/incident_repository.dart';
+import 'package:grampulse/features/officer/presentation/bloc/officer_bloc.dart';
+import 'package:grampulse/features/auth/presentation/bloc/role_selection_bloc.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -40,6 +42,12 @@ class App extends StatelessWidget {
           create: (context) => IncidentBloc(
             repository: IncidentRepository(),
           ),
+        ),
+        BlocProvider<OfficerBloc>(
+          create: (context) => OfficerBloc(),
+        ),
+        BlocProvider<RoleSelectionBloc>(
+          create: (context) => RoleSelectionBloc(),
         ),
       ],
       child: MaterialApp.router(
