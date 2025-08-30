@@ -5,6 +5,7 @@ import '../bloc/officer_bloc.dart';
 import '../bloc/officer_event.dart';
 import '../bloc/officer_state.dart';
 import 'officer_incidents_screen.dart';
+import 'officer_priority_queue_screen.dart';
 
 class OfficerDashboardScreen extends StatefulWidget {
   const OfficerDashboardScreen({Key? key}) : super(key: key);
@@ -299,6 +300,20 @@ class _OfficerDashboardScreenState extends State<OfficerDashboardScreen> {
               children: [
                 Expanded(
                   child: _buildActionButton(
+                    'Priority Queue',
+                    Icons.priority_high,
+                    Colors.red,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OfficerPriorityQueueScreen(),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionButton(
                     'View All Incidents',
                     Icons.list,
                     Colors.blue,
@@ -310,7 +325,11 @@ class _OfficerDashboardScreenState extends State<OfficerDashboardScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
                 Expanded(
                   child: _buildActionButton(
                     'New Incidents',
@@ -324,6 +343,20 @@ class _OfficerDashboardScreenState extends State<OfficerDashboardScreen> {
                         ),
                       ),
                     ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionButton(
+                    'Escalations',
+                    Icons.arrow_upward,
+                    Colors.purple,
+                    () {
+                      // TODO: Navigate to escalations screen
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Escalations feature coming soon!')),
+                      );
+                    },
                   ),
                 ),
               ],

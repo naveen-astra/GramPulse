@@ -29,10 +29,10 @@ class ApiResponse<T> {
 
 class ApiService {
   // Use --dart-define to override at run-time: --dart-define=API_BASE=http://<host>:5000/api
-  // With ADB port forwarding, we can use localhost
+  // For physical device: need to use computer's IP address instead of localhost
   static const String baseUrl = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'http://localhost:5000/api', // Using localhost with ADB port forwarding
+    defaultValue: 'http://localhost:5000/api', // localhost works for the device shown in logs
   );
 
   // Headers with token
@@ -49,7 +49,7 @@ class ApiService {
     if (token != null) {
       print('🎫 TOKEN PRESENT: ${token.substring(0, 20)}...');
     } else {
-      print('❌ NO TOKEN FOUND');
+      print('❌ NO TOKEN FOUND - User needs to authenticate');
     }
     
     return headers;
